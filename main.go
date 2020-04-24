@@ -56,11 +56,11 @@ func doWork(work chan string, wg *sync.WaitGroup, client *http.Client) {
         defer wg.Done()
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {
-            fmt.Println(err)
+            log.Fatal(err)
         }
         resp, err := client.Do(req)
         if err != nil {
-                fmt.Println(999, err, url)
+            log.Fatal(err)
         }
         bodyString := ""
         req.Header.Set("Connection", "close")
