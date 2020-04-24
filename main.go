@@ -1,5 +1,3 @@
-// Receives lines from stdin, processes them with a user-defined number of threads
-
 package main
 
 import (
@@ -35,7 +33,8 @@ func main() {
             for s.Scan() {
                 for _, schema := range []string{"http://","https://"}{
                     for _, location := range []string{"/.well-known/security.txt","/security.txt"}{
-                        work <- schema + s.Text() + location
+                        url := schema + s.Text() + location
+                        work <- url 
                     }
                 }
             }
@@ -58,12 +57,10 @@ func doWork(work chan string, wg *sync.WaitGroup, client *http.Client) {
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {
             fmt.Println(err)
-            continue
         }
         resp, err := client.Do(req)
         if err != nil {
-                //fmt.Println(999, err, url)
-                return
+                fmt.Println(999, err, url)
         }
         bodyString := ""
         req.Header.Set("Connection", "close")
@@ -79,9 +76,8 @@ func doWork(work chan string, wg *sync.WaitGroup, client *http.Client) {
                 fmt.Print("\n\n###########################\nFOUND security.txt: " + url + "\n###########################\n")
                 fmt.Print(bodyString)
             }
-            return
         }
         resp.Body.Close()
-        fmt.Println(resp.StatusCode, url)
+        //fmt.Println(resp.StatusCode, url)
     }
 }
