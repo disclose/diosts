@@ -3,8 +3,8 @@ Takes a list of domains as the input, checks if they have a security.txt, output
 
 # build
 ```
-git clone https://github.com/hakluke/securitytxt-check
-cd securitytxt-check
+git clone https://github.com/hakluke/haksecuritytxt
+cd haksecuritytxt
 go build *.go
 ```
 
