@@ -56,18 +56,21 @@ func doWork(work chan string, wg *sync.WaitGroup, client *http.Client) {
         defer wg.Done()
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {
-            log.Fatal(err)
+            log.Println(err)
+            continue
         }
         resp, err := client.Do(req)
         if err != nil {
-            log.Fatal(err)
+            log.Println(err)
+            continue
         }
         bodyString := ""
         req.Header.Set("Connection", "close")
         if resp.StatusCode == http.StatusOK {
             bodyBytes, err := ioutil.ReadAll(resp.Body)
             if err != nil {
-                log.Fatal(err)
+                log.Println(err)
+                continue
             }
             bodyString = string(bodyBytes)
         }
