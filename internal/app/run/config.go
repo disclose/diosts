@@ -1,7 +1,12 @@
 package run
 
+import (
+	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
+)
+
 type Config struct {
 	NumThreads int
+	SecurityTxt securitytxt.Config
 }
 
 var DefaultConfig = Config{
@@ -10,5 +15,7 @@ var DefaultConfig = Config{
 
 func NewConfig() *Config {
 	config := DefaultConfig
+	config.SecurityTxt = securitytxt.DefaultConfig
+
 	return &config
 }
