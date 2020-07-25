@@ -93,12 +93,13 @@ func (c *DomainClient) GetDomainBody(domain string) []byte {
 		for _, location := range(locations) {
 			url := fmt.Sprintf("%s://%s/%s", schema, strippedDomain, location)
 			body, err = c.GetBody(url)
+			// TODO: If we have a body, return it, but record the error
 			if err != nil {
 				log.Debug().Err(err).Str("url", url).Msg("error retrieving")
 				continue
 			}
 			if len(body) == 0 {
-				log.Debug().Str("url", url).Msg("empty body")
+				log.Debug().Str("url", url).Msg("no body")
 				continue
 			}
 
@@ -110,6 +111,8 @@ func (c *DomainClient) GetDomainBody(domain string) []byte {
 	return nil
 }
 
+// Returning an error doesn't mean we don't have a body. If we can, we'll
+// always read and return a body
 func (c *DomainClient) GetBody(url string) ([]byte, error) {
 	resp, err := c.client.Get(url)
 	if err != nil {
@@ -121,6 +124,7 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 		return nil, fmt.Errorf("unable to retrieve %s, returned status %d", url, resp.StatusCode)
 	}
 
+	body := ioutil.ReadAll(resp.Body)
 /* 
    It MUST have a Content-Type of "text/plain" with the
    default charset parameter set to "utf-8" (as per section 4.1.3 of
@@ -129,10 +133,10 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 	contentType := resp.Header.Get("Content-Type")
 	if contentType != "text/plain; charset=utf/8" {
 		log.Info().Str("content-type", contentType).Msg("Content-Type is not text/plain; charset=utf-8")
-		return nil, fmt.Errorf("expecting Content-Type of \"text/plain; charset=utf-8\", got \"%s\"", contentType)
+		return body, fmt.Errorf("expecting Content-Type of \"text/plain; charset=utf-8\", got \"%s\"", contentType)
 	}
 
-	return ioutil.ReadAll(resp.Body)
+	return body, nil
 }
 
 // Get bare domain from input
