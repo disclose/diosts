@@ -43,7 +43,9 @@ func initApp() {
 	}
 }
 
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
