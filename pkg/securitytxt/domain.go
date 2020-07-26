@@ -59,7 +59,7 @@ func NewDomainClient(config *Config) (*DomainClient, error) {
 			Dial: dialer.Dial,
 			TLSHandshakeTimeout: config.TLSHandshakeTimeout,
 			DisableKeepAlives: true,
-			MaxIdelConns: 1, // We only use connections for a single request
+			MaxIdleConns: 1, // We only use connections for a single request
 		},
 		Timeout: config.RequestTimeout,
 	}
@@ -91,8 +91,8 @@ func (c *DomainClient) GetDomainBody(domain string) []byte {
 	// security.txt endpoints in order of spec until we find one
 	for _, schema := range(schemas) {
 		for _, location := range(locations) {
-			url := fmt.Sprintf("%s://%s/%s", schema, strippedDomain, location)
-			body, err = c.GetBody(url)
+			url := fmt.Sprintf("%s://%s/%s", schema, domain, location)
+			body, err := c.GetBody(url)
 			// TODO: If we have a body, return it, but record the error
 			if err != nil {
 				log.Debug().Err(err).Str("url", url).Msg("error retrieving")
@@ -124,7 +124,10 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 		return nil, fmt.Errorf("unable to retrieve %s, returned status %d", url, resp.StatusCode)
 	}
 
-	body := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 /* 
    It MUST have a Content-Type of "text/plain" with the
    default charset parameter set to "utf-8" (as per section 4.1.3 of

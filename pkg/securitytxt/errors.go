@@ -21,6 +21,6 @@ type SyntaxError struct {
 }
 
 func (e *SyntaxError) Error() string {
-	return fmt.Sprintf("Error in line %d: %s", lineNo, msg)
+	return fmt.Sprintf("Error in line %d: %s", e.lineNo, e.msg)
 }
 

@@ -1,7 +1,6 @@
 package securitytxt
 
 import (
-	"bytes"
 	"time"
 )
 
@@ -27,7 +26,7 @@ type SecurityTxt struct {
 // New extracts as many fields as possible and returns an error if there is
 // a syntactical error, if the input is signed but the signature is incorrect
 // or if the multiplicity of a field is not according to spec.
-func New(in []byte) (*SecurityTxt, err) {
+func New(in []byte) (*SecurityTxt, error) {
 	msg, err := NewSignedMessage(in)
 	if err != nil {
 		return nil, err
@@ -40,7 +39,7 @@ func New(in []byte) (*SecurityTxt, err) {
 	// Note: try and collect as many fields as possible and as many errors as possible
 	// Output should be human-readable error report.
 
-	err := Parse(in, t)
+	err = Parse(in, t)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +85,7 @@ func (t *SecurityTxt) Validate() error {
 	return nil
 }
 
-func (t *SecurityTxt) ParseErrors) []SyntaxError {
+func (t *SecurityTxt) ParseErrors() []SyntaxError {
 	return t.errors
 }
 

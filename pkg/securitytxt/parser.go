@@ -48,8 +48,8 @@ func getFieldValue(line string) (fieldName, value, errMsg string) {
 	}
 
 	// Printable US-ASCII followed by optional white space; case insensitive.
-	fieldName := strings.ToLower(strings.TrimRightFunc(split[0], unicode.IsSpace))
-	value := strings.TrimSpace(split[1])
+	fieldName = strings.ToLower(strings.TrimRightFunc(split[0], unicode.IsSpace))
+	value = strings.TrimSpace(split[1])
 
 	// Check if field name is printable US-ASCII except space (VCHAR)
 	if strings.IndexFunc(fieldName, isUSASCII) != -1 {

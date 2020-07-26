@@ -3,14 +3,38 @@ package run
 import (
 	"bufio"
 	"io"
+	"os"
 )
 
-func readDomains(in io.Reader, out chan string) {
-	s := bufio.NewScanner(in)
-	for s.Scan() {
-		out <- url
+type Reader struct {
+	*Config
+
+	outCh chan<- string
+}
+
+func NewReader(config *Config, outCh chan<- string) (*Reader, error) {
+	r := &Reader{
+		Config: config,
+		outCh: outCh,
 	}
 
-	// All done, close channel
-	close(out)
+	return r, nil
+}
+
+func (r *Reader) Start(errCh chan<- error) error {
+	go func() {
+		s := bufio.NewScanner(os.Stdin)
+		for s.Scan() {
+			r.outCh <- s.Text()
+		}
+
+		if err := s.Err(); err != nil {
+			errCh <- err
+		}
+
+		// All done, close channel
+		close(r.outCh)
+	}()
+
+	return nil
 }
