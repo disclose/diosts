@@ -114,6 +114,7 @@ func (c *DomainClient) GetDomainBody(domain string) []byte {
 // Returning an error doesn't mean we don't have a body. If we can, we'll
 // always read and return a body
 func (c *DomainClient) GetBody(url string) ([]byte, error) {
+	log.Debug().Str("url", url).Msg("retrieving")
 	resp, err := c.client.Get(url)
 	if err != nil {
 		return nil, err
@@ -134,7 +135,8 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
    [RFC2046]).
 */
 	contentType := resp.Header.Get("Content-Type")
-	if contentType != "text/plain; charset=utf/8" {
+	//if contentType != "text/plain; charset=utf/8" {
+	if !strings.HasPrefix(contentType, "text/plain") {
 		log.Info().Str("content-type", contentType).Msg("Content-Type is not text/plain; charset=utf-8")
 		return body, fmt.Errorf("expecting Content-Type of \"text/plain; charset=utf-8\", got \"%s\"", contentType)
 	}

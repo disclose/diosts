@@ -1,8 +1,12 @@
 package securitytxt
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
+	"strings"
 	"time"
+	"unicode"
 )
 
 // Parse errors are collected in human-readable form in errors[] such that we
@@ -10,11 +14,11 @@ import (
 func Parse(in []byte, txt *SecurityTxt) error {
 	s := bufio.NewScanner(bytes.NewReader(in))
 
-	for lineNo := 0; s.Scan(); i++ {
+	for lineNo := 0; s.Scan(); lineNo++ {
 		line := s.Text()
 
 		// Comment or empty line
-		if line[0] == "#" || strings.TrimSpace(line) == "" {
+		if strings.TrimSpace(line) == "" || line[0] == '#' {
 			continue
 		}
 
@@ -25,14 +29,14 @@ func Parse(in []byte, txt *SecurityTxt) error {
 			continue
 		}
 
-		errMsg = txt.AssignField(fieldname, value)
+		errMsg = txt.AssignField(fieldName, value)
 		if errMsg != "" {
 			txt.addError(lineNo, line, errMsg)
 			continue
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
+	if err := s.Err(); err != nil {
 		return err
 	}
 
@@ -52,20 +56,22 @@ func getFieldValue(line string) (fieldName, value, errMsg string) {
 	value = strings.TrimSpace(split[1])
 
 	// Check if field name is printable US-ASCII except space (VCHAR)
-	if strings.IndexFunc(fieldName, isUSASCII) != -1 {
+	if strings.IndexFunc(fieldName, isNotUSASCII) != -1 {
 		errMsg = fieldNameErrorMsg
 		return
 	}
 
 	// Check if value is printable US-ASCII except space (VCHAR)
-	if strings.IndexFunc(value, isUSASCII) != -1 {
+	if strings.IndexFunc(value, isNotUSASCII) != -1 {
 		errMsg = valueErrorMsg
 		return
 	}
+
+	return
 }
 
-func isUSASCII(r rune) bool {
-	if r >= 33 && r <= 126 {
+func isNotUSASCII(r rune) bool {
+	if r < 33 || r > 126 {
 		return true
 	}
 
@@ -74,6 +80,7 @@ func isUSASCII(r rune) bool {
 
 func assignListValue(fieldName string, list *[]string, value string) (errMsg string) {
 	*list = append(*list, value)
+	return
 }
 
 func assignStringValue(fieldName string, str *string, value string) (errMsg string) {
@@ -82,6 +89,7 @@ func assignStringValue(fieldName string, str *string, value string) (errMsg stri
 	}
 
 	*str = value
+	return
 }
 
 func assignTimeValue(fieldName string, t *time.Time, value string) (errMsg string) {
@@ -92,7 +100,7 @@ func assignTimeValue(fieldName string, t *time.Time, value string) (errMsg strin
 	var err error
 
 	// Check if we start with day number, else assume day name
-	if unicode.IsDigit(value[0]) {
+	if unicode.IsDigit(rune(value[0])) {
 		// "02 Jan 06 15:04 -0700"
 		*t, err = time.Parse(time.RFC822Z, value)
 	} else {
@@ -101,6 +109,7 @@ func assignTimeValue(fieldName string, t *time.Time, value string) (errMsg strin
 	}
 
 	if err != nil {
-		return fmt.Sprintf(invalidTimeErrorMsg, fieldname, err.Error())
+		return fmt.Sprintf(invalidTimeErrorMsg, fieldName, err.Error())
 	}
+	return
 }

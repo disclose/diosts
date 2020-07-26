@@ -2,7 +2,6 @@ package run
 
 import (
 	"bufio"
-	"io"
 	"os"
 )
 

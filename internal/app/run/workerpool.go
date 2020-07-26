@@ -3,9 +3,6 @@ package run
 import (
 	"sync"
 
-	"github.com/rs/zerolog/log"
-
-	"github.com/hakluke/haksecuritytxt/internal/pkg/discloseio"
 	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
 )
 
@@ -20,7 +17,7 @@ type WorkerPool struct {
 	wg sync.WaitGroup
 }
 
-func NewWorkerPool(config *Config, client *securitytxt.DomainClient, inCh <-chan string, outCh chan<- *securitytxt.SecurityTxt) (*Writer, error) {
+func NewWorkerPool(config *Config, client *securitytxt.DomainClient, inCh <-chan string, outCh chan<- *securitytxt.SecurityTxt) (*WorkerPool, error) {
 	w := &WorkerPool{
 		Config: config,
 		client: client,
@@ -39,6 +36,9 @@ func (w *WorkerPool) Run(errCh chan<- error) error {
 
 	w.wg.Wait()
 
+	// All workers done
+	close(w.outCh)
+
 	return nil
 }
 
@@ -52,6 +52,8 @@ func (w *WorkerPool) work(errCh chan<- error) {
 			return
 		}
 
-		w.outCh <- txt
+		if txt != nil {
+			w.outCh <- txt
+		}
 	}
 }

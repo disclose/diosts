@@ -10,7 +10,7 @@ type Fields struct {
 	ProgramName string `json:"program_name,omitempty"`
 	PolicyURL []string `json:"policy_url,omitempty"`
 	ContactURL []string `json:"contact_url"`
-	LaunchDate time.Time `json:"launch_date,omitempty"`
+	LaunchDate *time.Time `json:"launch_date,omitempty"`
 	OffersBounty string `json:"offers_bounty,omitempty"`
 	OffersSwag bool `json:"offers_swag,omitempty"`
 	HallOfFame []string `json:"hall_of_fame,omitempty"`

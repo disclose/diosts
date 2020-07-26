@@ -1,15 +1,6 @@
 package run
 
 import (
-	"bufio"
-	"crypto/tls"
-	"net"
-	"net/http"
-	"os"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/rs/zerolog/log"
 
 	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
@@ -37,7 +28,7 @@ func New(config *Config) (*App, error) {
 		return nil, err
 	}
 
-	client, err := securitytxt.NewDomainClient(config.SecurityTxt)
+	client, err := securitytxt.NewDomainClient(&config.SecurityTxt)
 	if err != nil {
 		return nil, err
 	}
@@ -60,11 +51,11 @@ func New(config *Config) (*App, error) {
 func (a *App) Run() error {
 	errCh := make(chan error, 1)
 	go func() {
-		err <- errCh
+		err := <-errCh
 		if err != nil {
 			log.Fatal().Err(err).Msg("")
 		}
-	}
+	}()
 
 	// TODO
 	// - Add counter: total input. total securitytxt, total valid
@@ -81,11 +72,19 @@ func (a *App) Run() error {
 	}
 
 	// Write domains - will stop when txtCh is closed
-	err = a.writer.Start()
+	err = a.writer.Start(errCh)
 	if err != nil {
 		return err
 	}
 
 	// Will run until domainCh is closed and closes txtCh
-	return a.pool.Run(errCh)
+	err = a.pool.Run(errCh)
+	if err != nil {
+		return err
+	}
+
+	// Wait until all security.txt results have been written
+	a.writer.Wait()
+
+	return nil
 }

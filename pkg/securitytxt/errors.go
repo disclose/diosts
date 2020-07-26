@@ -20,7 +20,7 @@ type SyntaxError struct {
 	msg string
 }
 
-func (e *SyntaxError) Error() string {
+func (e SyntaxError) Error() string {
 	return fmt.Sprintf("Error in line %d: %s", e.lineNo, e.msg)
 }
 

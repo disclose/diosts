@@ -1,6 +1,7 @@
 package securitytxt
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -39,7 +40,7 @@ func New(in []byte) (*SecurityTxt, error) {
 	// Note: try and collect as many fields as possible and as many errors as possible
 	// Output should be human-readable error report.
 
-	err = Parse(in, t)
+	err = Parse(msg.Message(), txt)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (t *SecurityTxt) AssignField(fieldName, value string) (errMsg string) {
 	case "encryption":
 		return assignListValue(fieldName, &t.Encryption, value)
 	case "expires":
-		return assignTime(fieldName, &t.Expires, value)
+		return assignTimeValue(fieldName, &t.Expires, value)
 	case "hiring":
 		return assignListValue(fieldName, &t.Hiring, value)
 	case "policy":

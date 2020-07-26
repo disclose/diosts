@@ -29,7 +29,7 @@ func NewSignedMessage(in []byte) (*SignedMessage, error) {
 	}
 
 	// Check and extract signature
-	p, err := packet.Read(block.ArmoredSignature.Body)
+	_, err := packet.Read(block.ArmoredSignature.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func NewSignedMessage(in []byte) (*SignedMessage, error) {
 		signed: true,
 	}
 
-	return m
+	return m, nil
 }
 
 func (m *SignedMessage) Signed() bool {
