@@ -38,7 +38,7 @@ func (w *Writer) Start(errCh chan<- error) error {
 
 			if txt.ParseErrors() != nil {
 				for _, err := range(txt.ParseErrors()) {
-					log.Debug().Err(err).Msg("parser error")
+					log.Info().Str("domain", txt.Domain).Err(err).Msg("security.txt validation error")
 				}
 			}
 		}

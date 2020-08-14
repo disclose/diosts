@@ -12,6 +12,7 @@ const (
 	emptyValueErrorMsg = "value cannot be empty"
 	multipleValueErrorMsg = "multiple values for field '%s', expecting one value as per section 3.5 of draft-foudil-securitytxt-09"
 	invalidTimeErrorMsg = "invalid time in field '%s' according to section 3.3 of RFC5322: %s"
+	acknowledgmentsErrorMsg = "invalid field name 'acknowledgements', should be 'acknowledgments as per section 3.5.1 of draft-foudil-securitytxt-09"
 )
 
 type SyntaxError struct {

@@ -2,4 +2,7 @@
 - http error to txt
 - errors output to file
 - counters
-- acknowledgements error
+- properly deal with different types of errors
+- rename
+- readme
+- messages in security txt (e.g, redirects)

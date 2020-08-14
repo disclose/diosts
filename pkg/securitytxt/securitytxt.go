@@ -6,8 +6,10 @@ import (
 )
 
 // https://tools.ietf.org/html/draft-foudil-securitytxt-09#section-3.5
+// Note: we don't use the format tag yet.
 type SecurityTxt struct {
-	Acknowledgements []string `format:"secure-url"`
+	// Official fields
+	Acknowledgments []string `format:"secure-url"`
 	Canonical []string `format:"secure-url"`
 	Contact []string `format:"contact-uri"`
 	Encryption []string `format:"key-uri"`
@@ -15,6 +17,10 @@ type SecurityTxt struct {
 	Hiring []string `format:"secure-url"`
 	Policy []string `format:"secure-url"`
 	PreferredLanguages string `format:"rfc5646"`
+
+	// Other useful fields
+	Domain string
+	RetrievedFrom string
 
 	// TODO: Verify signature and store signing key
 	signed bool
@@ -61,7 +67,10 @@ func (t *SecurityTxt) AssignField(fieldName, value string) (errMsg string) {
 	// fieldName is lower case
 	switch fieldName {
 	case "acknowledgments":
-		return assignListValue(fieldName, &t.Acknowledgements, value)
+		return assignListValue(fieldName, &t.Acknowledgments, value)
+	case "acknowledgements":
+		assignListValue(fieldName, &t.Acknowledgments, value)
+		return acknowledgmentsErrorMsg
 	case "canonical":
 		return assignListValue(fieldName, &t.Canonical, value)
 	case "contact":

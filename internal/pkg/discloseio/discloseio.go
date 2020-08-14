@@ -25,9 +25,10 @@ type Fields struct {
 
 func FromSecurityTxt(txt *securitytxt.SecurityTxt) *Fields {
 	f := &Fields{
+		ProgramName: txt.Domain,
 		PolicyURL: txt.Policy,
 		ContactURL: txt.Contact,
-		HallOfFame: txt.Acknowledgements,
+		HallOfFame: txt.Acknowledgments,
 		PGPKey: txt.Encryption,
 		Hiring: txt.Hiring,
 		SecuritytxtURL: txt.Canonical,

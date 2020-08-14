@@ -79,16 +79,23 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 		log.Debug().Str("input", domain).Str("domain", strippedDomain).Msg("stripped domain")
 	}
 
-	body := c.GetDomainBody(strippedDomain)
+	body, url := c.GetDomainBody(strippedDomain)
 	if body == nil {
 		return nil, nil
 	}
 
-	return New(body)
+	t, err := New(body)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Domain = strippedDomain
+	t.RetrievedFrom = url
+	return t, nil
 }
 
 // Iterate over valid endpoints and retrieve body
-func (c *DomainClient) GetDomainBody(domain string) []byte {
+func (c *DomainClient) GetDomainBody(domain string) ([]byte, string) {
 	// security.txt endpoints in order of spec until we find one
 	for _, schema := range(schemas) {
 		for _, location := range(locations) {
@@ -104,12 +111,12 @@ func (c *DomainClient) GetDomainBody(domain string) []byte {
 				continue
 			}
 
-			return body
+			return body, url
 		}
 	}
 
 	// Nothing found
-	return nil
+	return nil, ""
 }
 
 // Returning an error doesn't mean we don't have a body. If we can, we'll
