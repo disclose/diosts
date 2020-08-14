@@ -18,6 +18,12 @@ type DomainClient struct {
 	client *http.Client
 }
 
+type DomainBody struct {
+	url string
+	body []byte
+	err error
+}
+
 /*
 4.1.  Web-based services
 
@@ -79,44 +85,53 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 		log.Debug().Str("input", domain).Str("domain", strippedDomain).Msg("stripped domain")
 	}
 
-	body, url := c.GetDomainBody(strippedDomain)
+	body := c.GetDomainBody(strippedDomain)
 	if body == nil {
 		return nil, nil
 	}
 
-	t, err := New(body)
+	t, err := New(body.body)
 	if err != nil {
 		return nil, err
 	}
 
 	t.Domain = strippedDomain
-	t.RetrievedFrom = url
+	t.RetrievedFrom = body.url
+	if body.err != nil {
+		t.addHTTPError(body.err)
+	}
 	return t, nil
 }
 
 // Iterate over valid endpoints and retrieve body
-func (c *DomainClient) GetDomainBody(domain string) ([]byte, string) {
+func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
 	// security.txt endpoints in order of spec until we find one
 	for _, schema := range(schemas) {
 		for _, location := range(locations) {
 			url := fmt.Sprintf("%s://%s/%s", schema, domain, location)
 			body, err := c.GetBody(url)
-			// TODO: If we have a body, return it, but record the error
-			if err != nil {
+			// No body means fatal retrieval error
+			if body == nil {
 				log.Debug().Err(err).Str("url", url).Msg("error retrieving")
 				continue
 			}
+
+			// This is weird, ignore
 			if len(body) == 0 {
 				log.Debug().Str("url", url).Msg("no body")
 				continue
 			}
 
-			return body, url
+			return &DomainBody{
+				url: url,
+				body: body,
+				err: err,
+			}
 		}
 	}
 
 	// Nothing found
-	return nil, ""
+	return nil
 }
 
 // Returning an error doesn't mean we don't have a body. If we can, we'll
@@ -143,13 +158,11 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
    [RFC2046]).
 */
 	contentType := resp.Header.Get("Content-Type")
-	//if contentType != "text/plain; charset=utf/8" {
-	if !strings.HasPrefix(contentType, "text/plain") {
-		log.Info().Str("content-type", contentType).Msg("Content-Type is not text/plain; charset=utf-8")
-		return body, fmt.Errorf("expecting Content-Type of \"text/plain; charset=utf-8\", got \"%s\"", contentType)
+	if contentType != "text/plain; charset=utf/8" {
+		err = fmt.Errorf(contentTypeErrorMsg, contentType)
 	}
 
-	return body, nil
+	return body, err
 }
 
 // Get bare domain from input

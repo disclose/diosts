@@ -1,6 +1,3 @@
-- content-type error to txt
-- http error to txt
-- errors output to file
 - counters
 - properly deal with different types of errors
 - rename

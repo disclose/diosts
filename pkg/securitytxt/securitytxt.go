@@ -27,7 +27,7 @@ type SecurityTxt struct {
 
 	// Collection of errors of this security.txt that did not prohibit
 	// us from parsing at least something
-	errors []SyntaxError
+	errors []error
 }
 
 // New extracts as many fields as possible and returns an error if there is
@@ -95,7 +95,7 @@ func (t *SecurityTxt) Validate() error {
 	return nil
 }
 
-func (t *SecurityTxt) ParseErrors() []SyntaxError {
+func (t *SecurityTxt) ParseErrors() []error {
 	return t.errors
 }
 
@@ -105,4 +105,8 @@ func (t *SecurityTxt) addError(lineNo int, line, msg string) {
 		line: line,
 		msg: msg,
 	})
+}
+
+func (t *SecurityTxt) addHTTPError(err error) {
+	t.errors = append(t.errors, HTTPError{err})
 }
