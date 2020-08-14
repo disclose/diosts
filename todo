@@ -1,2 +1,5 @@
-- redirect no info
+- content-type error to txt
+- http error to txt
 - errors output to file
+- counters
+- acknowledgements error

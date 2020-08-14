@@ -48,6 +48,14 @@ func New(config *Config) (*App, error) {
 	return a, nil
 }
 
+// We have five different outcomes when scraping a domain:
+// - Success!
+// - No security.txt available
+// - Error during scraping
+// - Scraped, but invalid security.txt
+// - Scraped, partly invalid security.txt
+// - Application error
+
 func (a *App) Run() error {
 	errCh := make(chan error, 1)
 	go func() {

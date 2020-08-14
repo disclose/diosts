@@ -60,7 +60,7 @@ func (t *SecurityTxt) AssignField(fieldName, value string) (errMsg string) {
 
 	// fieldName is lower case
 	switch fieldName {
-	case "acknowledgements":
+	case "acknowledgments":
 		return assignListValue(fieldName, &t.Acknowledgements, value)
 	case "canonical":
 		return assignListValue(fieldName, &t.Canonical, value)

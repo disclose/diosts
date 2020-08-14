@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"github.com/rs/zerolog/log"
 )
@@ -161,13 +162,31 @@ func stripDomain(domain string) (string) {
 // Make sure we don't leave this domain - always log something
 func checkRedirect(req *http.Request, via []*http.Request) error {
 	from := via[len(via) - 1]
-	log.Info().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
+	log.Debug().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
 
-	fromHost := from.URL.Hostname()
-	toHost := req.URL.Hostname()
+	fromHost := baseDomain(from.URL.Hostname())
+	toHost := baseDomain(req.URL.Hostname())
 	if fromHost != toHost {
 		return fmt.Errorf("redirect from %s to %s, prohibiting redirect to different hostname", fromHost, toHost)
 	}
 
 	return nil
+}
+
+// Get the base domain name
+func baseDomain(domain string) string {
+	splits := strings.Split(domain, ".")
+
+	// This is just weird, but ok - probably ipv6 address
+	if len(splits) < 2 {
+		return domain
+	}
+
+	// Check if this is an IP or domain name; assuming TLD cannot
+	// start with a number
+	if unicode.IsDigit(rune(splits[len(splits) - 1][0])) {
+		return domain
+	}
+
+	return strings.Join(splits[len(splits) - 2:], ".")
 }
