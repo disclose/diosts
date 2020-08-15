@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/disclose/securitytxt-scraper/cmd/diosts/commands"
+	"github.com/disclose/diosts/cmd/diosts/commands"
 )
 
 func main() {

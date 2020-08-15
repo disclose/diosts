@@ -1,7 +1,7 @@
 package run
 
 import (
-	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
+	"github.com/disclose/diosts/pkg/securitytxt"
 )
 
 type Config struct {

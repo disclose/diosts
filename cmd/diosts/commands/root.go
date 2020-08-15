@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
-	"github.com/disclose/securitytxt-scraper/internal/app/run"
+	"github.com/disclose/diosts/internal/app/run"
 )
 
 var runConfig = run.NewConfig()

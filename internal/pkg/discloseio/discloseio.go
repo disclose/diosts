@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
+	"github.com/disclose/diosts/pkg/securitytxt"
 )
 
 type Fields struct {

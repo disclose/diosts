@@ -1,4 +1,4 @@
-module github.com/disclose/securitytxt-scraper
+module github.com/disclose/diosts
 
 go 1.13
 

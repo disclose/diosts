@@ -1,4 +1,4 @@
-# securitytxt-scraper
+# diosts
 
 The disclose.io security.txt scraper (`diosts`) takes a list of domains as the input, retrieves and validates the `security.txt` if available and outputs it in the disclose.io JSON format.
 
@@ -6,7 +6,7 @@ The disclose.io security.txt scraper (`diosts`) takes a list of domains as the i
 Prerequisites: a working Golang installation >= 1.13
 
 ```
-go get github.com/disclose/securitytxt-scraper/cmd/diosts
+go get github.com/disclose/diosts/cmd/diosts
 ```
 
 # Usage
@@ -28,8 +28,8 @@ Any non-fatal violations of the [`security.txt` specification](https://tools.iet
 Note: building is not necessary if you use the installation instructions, Go will take care of this for you.
 
 ```
-git clone https://github.com/disclose/securitytxt-scraper
-cd securitytxt-scraper
+git clone https://github.com/disclose/diosts
+cd diosts
 go build ./cmd/diosts
 ```
 
