@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
+	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
 )
 
 type Fields struct {

@@ -5,13 +5,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 
-	"github.com/hakluke/haksecuritytxt/internal/app/run"
+	"github.com/disclose/securitytxt-scraper/internal/app/run"
 )
 
 var runConfig = run.NewConfig()
 
 var rootCmd = &cobra.Command{
-	Use: "haksecuritytxt",
+	Use: "diosts",
 	Short: "Scrape security.txt from list of input domains on stdin",
 	Run: func(cmd *cobra.Command, args []string) {
 		onRun()

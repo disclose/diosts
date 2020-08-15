@@ -1,7 +1,7 @@
 package run
 
 import (
-	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
+	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
 )
 
 type Config struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/hakluke/haksecuritytxt/cmd/haksecuritytxt/commands"
+	"github.com/disclose/securitytxt-scraper/cmd/diosts/commands"
 )
 
 func main() {

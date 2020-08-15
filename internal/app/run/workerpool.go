@@ -3,7 +3,7 @@ package run
 import (
 	"sync"
 
-	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
+	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
 )
 
 type WorkerPool struct {

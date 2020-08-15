@@ -1,6 +1,6 @@
-module github.com/hakluke/haksecuritytxt
+module github.com/disclose/securitytxt-scraper
 
-go 1.14
+go 1.13
 
 require (
 	github.com/rs/zerolog v1.19.0

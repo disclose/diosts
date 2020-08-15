@@ -7,8 +7,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/hakluke/haksecuritytxt/internal/pkg/discloseio"
-	"github.com/hakluke/haksecuritytxt/pkg/securitytxt"
+	"github.com/disclose/securitytxt-scraper/internal/pkg/discloseio"
+	"github.com/disclose/securitytxt-scraper/pkg/securitytxt"
 )
 
 type Writer struct {
