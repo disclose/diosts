@@ -1,6 +1,8 @@
 package run
 
 import (
+	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -32,16 +34,36 @@ func (w *Writer) Start(errCh chan<- error) error {
 	go func() {
 		defer w.wg.Done()
 
+		// Start of list
+		fmt.Printf("[\n")
+
+		count := 0
 		for txt := range(w.inCh) {
-			fields := discloseio.FromSecurityTxt(txt)
-			log.Info().Interface("disclose_io", fields).Msg("security.txt")
+			log.Info().Str("domain", txt.Domain).Msg("security.txt found")
 
 			if txt.ParseErrors() != nil {
 				for _, err := range(txt.ParseErrors()) {
 					log.Info().Str("domain", txt.Domain).Err(err).Msg("security.txt validation error")
 				}
 			}
+
+			fields := discloseio.FromSecurityTxt(txt)
+			out, err := json.MarshalIndent(fields, "  ", "  ")
+			if err != nil {
+				log.Warn().Err(err).Msg("error encoding json")
+				continue
+			}
+
+			if count > 0 {
+				fmt.Printf(",\n")
+			}
+			fmt.Printf("  %s", string(out))
+
+			count++
 		}
+
+		// End of list
+		fmt.Printf("\n]\n")
 	}()
 
 	return nil

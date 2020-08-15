@@ -49,12 +49,12 @@ func New(config *Config) (*App, error) {
 }
 
 // We have five different outcomes when scraping a domain:
-// - Success!
-// - No security.txt available
-// - Error during scraping
-// - Scraped, but invalid security.txt
-// - Scraped, partly invalid security.txt
-// - Application error
+// - Success!; log info message, json output
+// - No security.txt available; log info message
+// - Error during scraping; log info message
+// - Scraped, but invalid security.txt; log info message
+// - Scraped, partly invalid security.txt; log info message, list of violations, json
+// - Application error; log fatal message, quit
 
 func (a *App) Run() error {
 	errCh := make(chan error, 1)
@@ -66,12 +66,10 @@ func (a *App) Run() error {
 	}()
 
 	// TODO
-	// - Add counter: total input. total securitytxt, total valid
-	// - validate input
-	// - error output for non-existent domain etc
-	// - graceful shutdown:w
-	// - output to stdout or file
-	// - silent mode or log to stderr
+	// - Add counter: total input, total security.txt found, total valid, etc
+	// - Validate field values
+	// - Graceful shutdown
+	// - Store redirects
 
 	// Read domains - will close domainCh when done
 	err := a.reader.Start(errCh)

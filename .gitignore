@@ -1,1 +1,4 @@
 /haksecuritytxt
+
+# Vim
+*.sw[a-p]

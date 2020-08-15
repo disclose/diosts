@@ -87,12 +87,14 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 
 	body := c.GetDomainBody(strippedDomain)
 	if body == nil {
+		log.Info().Str("domain", strippedDomain).Msg("no security.txt found")
 		return nil, nil
 	}
 
 	t, err := New(body.body)
 	if err != nil {
-		return nil, err
+		log.Info().Str("domain", strippedDomain).Err(err).Msg("error parsing security.txt")
+		return nil, nil
 	}
 
 	t.Domain = strippedDomain
@@ -104,7 +106,7 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 }
 
 // Iterate over valid endpoints and retrieve body
-func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
+func (c *DomainClient) GetDomainBody(domain string) (*DomainBody) {
 	// security.txt endpoints in order of spec until we find one
 	for _, schema := range(schemas) {
 		for _, location := range(locations) {
