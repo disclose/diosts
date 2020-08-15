@@ -6,7 +6,7 @@ The disclose.io security.txt scraper (`diosts`) takes a list of domains as the i
 Prerequisites: a working Golang installation >= 1.13
 
 ```
-go get github.com/disclose/securitytxt-scraper
+go get github.com/disclose/securitytxt-scraper/cmd/diosts
 ```
 
 # Usage
