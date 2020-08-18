@@ -55,38 +55,38 @@ func New(in []byte) (*SecurityTxt, error) {
 	return txt, nil
 }
 
-func (t *SecurityTxt) AssignField(fieldName, value string) (errMsg string) {
+func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
 	// I've thought about doing this by automatically finding the right
 	// fields in the SecurityTxt struct with reflect, but there's no
 	// need to be that flexible, it's slower and it also hurts my head.
 
-	if value == "" {
+	if field.Value == "" {
 		return emptyValueErrorMsg
 	}
 
 	// fieldName is lower case
-	switch fieldName {
+	switch field.Key {
 	case "acknowledgments":
-		return assignListValue(fieldName, &t.Acknowledgments, value)
+		return assignListValue(&t.Acknowledgments, field)
 	case "acknowledgements":
-		assignListValue(fieldName, &t.Acknowledgments, value)
+		assignListValue(&t.Acknowledgments, field)
 		return acknowledgmentsErrorMsg
 	case "canonical":
-		return assignListValue(fieldName, &t.Canonical, value)
+		return assignListValue(&t.Canonical, field)
 	case "contact":
-		return assignListValue(fieldName, &t.Contact, value)
+		return assignListValue(&t.Contact, field)
 	case "encryption":
-		return assignListValue(fieldName, &t.Encryption, value)
+		return assignListValue(&t.Encryption, field)
 	case "expires":
-		return assignTimeValue(fieldName, &t.Expires, value)
+		return assignTimeValue(&t.Expires, field)
 	case "hiring":
-		return assignListValue(fieldName, &t.Hiring, value)
+		return assignListValue(&t.Hiring, field)
 	case "policy":
-		return assignListValue(fieldName, &t.Policy, value)
+		return assignListValue(&t.Policy, field)
 	case "preferred-languages":
-		return assignStringValue(fieldName, &t.PreferredLanguages, value)
+		return assignStringValue(&t.PreferredLanguages, field)
 	default:
-		return fmt.Sprintf(unknownFieldErrorMsg, fieldName)
+		return fmt.Sprintf(unknownFieldErrorMsg, field.Key)
 	}
 }
 
