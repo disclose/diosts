@@ -14,6 +14,7 @@ const (
 	invalidTimeErrorMsg = "invalid time in field '%s' according to section 3.3 of RFC5322: %s"
 	acknowledgmentsErrorMsg = "invalid field name 'acknowledgements', should be 'acknowledgments' as per section 3.5.1 of draft-foudil-securitytxt-09"
 	contentTypeErrorMsg = "invalid Content-Type of '%s', expecting 'text/plain; charset=utf-8' as per section 3 of draft-foudil-securitytxt-09"
+	missingContactErrorMsg = "Mandatory field 'Contact' not present as per section 3.5.3 of draft-foudil-securitytxt-09"
 )
 
 type SyntaxError struct {

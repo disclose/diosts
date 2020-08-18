@@ -39,6 +39,11 @@ func (w *Writer) Start(errCh chan<- error) error {
 
 		count := 0
 		for txt := range(w.inCh) {
+			if err := txt.Validate(); err != nil {
+				log.Info().Str("domain", txt.Domain).Err(err).Msg("invalid security.txt")
+				continue
+			}
+
 			log.Info().Str("domain", txt.Domain).Msg("security.txt found")
 
 			if txt.ParseErrors() != nil {

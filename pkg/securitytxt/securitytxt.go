@@ -92,6 +92,11 @@ func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
 
 // TODO: Deeper verification to check if everything is exactly to spec
 func (t *SecurityTxt) Validate() error {
+	//  The "Contact" field MUST always be present in a security.txt file.
+	if len(t.Contact) == 0 {
+		return fmt.Errorf(missingContactErrorMsg)
+	}
+
 	return nil
 }
 
