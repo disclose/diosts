@@ -67,7 +67,7 @@ func FromSecurityTxt(txt *securitytxt.SecurityTxt) *Fields {
 		}
 	}
 
-	if len(txt.Contact) > 0 || f.ContactURL == "" {
+	if len(txt.Contact) > 0 && f.ContactURL == "" {
 		f.ContactURL = txt.Contact[0]
 	}
 
