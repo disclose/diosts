@@ -3,7 +3,6 @@ package securitytxt
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"strings"
 	"time"
 	"unicode"
@@ -23,15 +22,15 @@ func Parse(in []byte, txt *SecurityTxt) error {
 		}
 
 		// Extact and check field-name and value
-		field, errMsg := getFieldValue(line)
-		if errMsg != "" {
-			txt.addError(lineNo, line, errMsg)
-			continue
+		field, err := getFieldValue(line)
+		if err != nil {
+			// We bail out on parse errors - this could very well
+			// be a 404 page
+			return err
 		}
 
-		errMsg = txt.AssignField(field)
-		if errMsg != "" {
-			txt.addError(lineNo, line, errMsg)
+		if err := txt.AssignField(field); err != nil {
+			txt.addSyntaxError(lineNo, line, err)
 			continue
 		}
 	}
@@ -43,11 +42,11 @@ func Parse(in []byte, txt *SecurityTxt) error {
 	return nil
 }
 
-func getFieldValue(line string) (*Field, string) {
+func getFieldValue(line string) (*Field, error) {
 	// RFC5322 3.6.8
 	split := strings.SplitN(line, ":", 2)
 	if len(split) != 2 {
-		return nil, separatorErrorMsg
+		return nil, NewSeparatorError()
 	}
 
 	// Printable US-ASCII followed by optional white space; case insensitive.
@@ -58,15 +57,15 @@ func getFieldValue(line string) (*Field, string) {
 
 	// Check if field name is printable US-ASCII except space (VCHAR)
 	if strings.IndexFunc(field.Key, isNotUSASCII) != -1 {
-		return field, fieldNameErrorMsg
+		return field, NewFieldNameError()
 	}
 
 	// Check if value is printable US-ASCII except space (VCHAR)
 	if strings.IndexFunc(field.Value, isNotUSASCII) != -1 {
-		return field, valueErrorMsg
+		return field, NewValueError()
 	}
 
-	return nil, ""
+	return field, nil
 }
 
 func isNotUSASCII(r rune) bool {
@@ -77,23 +76,23 @@ func isNotUSASCII(r rune) bool {
 	return false
 }
 
-func assignListValue(list *[]string, field *Field) (errMsg string) {
+func assignListValue(list *[]string, field *Field) error {
 	*list = append(*list, field.Value)
-	return
+	return nil
 }
 
-func assignStringValue(str *string, field *Field) (errMsg string) {
+func assignStringValue(str *string, field *Field) error {
 	if *str != "" {
-		return fmt.Sprintf(multipleValueErrorMsg, field.Key)
+		return NewMultipleValueError(field)
 	}
 
 	*str = field.Value
-	return
+	return nil
 }
 
-func assignTimeValue(t *time.Time, field *Field) (errMsg string) {
+func assignTimeValue(t *time.Time, field *Field) error {
 	if !t.IsZero() {
-		return fmt.Sprintf(multipleValueErrorMsg, field.Key)
+		return NewMultipleValueError(field)
 	}
 
 	var err error
@@ -108,7 +107,7 @@ func assignTimeValue(t *time.Time, field *Field) (errMsg string) {
 	}
 
 	if err != nil {
-		return fmt.Sprintf(invalidTimeErrorMsg, field.Key, err.Error())
+		return NewInvalidTimeError(field, err)
 	}
-	return
+	return nil
 }

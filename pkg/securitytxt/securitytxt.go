@@ -1,7 +1,6 @@
 package securitytxt
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -51,17 +50,17 @@ func New(in []byte) (*SecurityTxt, error) {
 		return nil, err
 	}
 
-	// Caller should deal with parsing errors
+	// Caller should deal with syntax errors
 	return txt, nil
 }
 
-func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
+func (t *SecurityTxt) AssignField(field *Field) error {
 	// I've thought about doing this by automatically finding the right
 	// fields in the SecurityTxt struct with reflect, but there's no
 	// need to be that flexible, it's slower and it also hurts my head.
 
 	if field.Value == "" {
-		return emptyValueErrorMsg
+		return NewEmptyValueError()
 	}
 
 	// fieldName is lower case
@@ -70,7 +69,7 @@ func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
 		return assignListValue(&t.Acknowledgments, field)
 	case "acknowledgements":
 		assignListValue(&t.Acknowledgments, field)
-		return acknowledgmentsErrorMsg
+		return NewAcknowledgmentsError()
 	case "canonical":
 		return assignListValue(&t.Canonical, field)
 	case "contact":
@@ -86,7 +85,7 @@ func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
 	case "preferred-languages":
 		return assignStringValue(&t.PreferredLanguages, field)
 	default:
-		return fmt.Sprintf(unknownFieldErrorMsg, field.Key)
+		return NewUnknownFieldError(field)
 	}
 }
 
@@ -94,7 +93,7 @@ func (t *SecurityTxt) AssignField(field *Field) (errMsg string) {
 func (t *SecurityTxt) Validate() error {
 	//  The "Contact" field MUST always be present in a security.txt file.
 	if len(t.Contact) == 0 {
-		return fmt.Errorf(missingContactErrorMsg)
+		return NewMissingContactError()
 	}
 
 	return nil
@@ -104,14 +103,14 @@ func (t *SecurityTxt) ParseErrors() []error {
 	return t.errors
 }
 
-func (t *SecurityTxt) addError(lineNo int, line, msg string) {
+func (t *SecurityTxt) addSyntaxError(lineNo int, line string, err error) {
 	t.errors = append(t.errors, SyntaxError{
 		lineNo: lineNo,
 		line: line,
-		msg: msg,
+		err: err,
 	})
 }
 
-func (t *SecurityTxt) addHTTPError(err error) {
-	t.errors = append(t.errors, HTTPError{err})
+func (t *SecurityTxt) addError(err error) {
+	t.errors = append(t.errors, err)
 }

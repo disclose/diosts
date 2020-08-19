@@ -94,13 +94,13 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 	t, err := New(body.body)
 	if err != nil {
 		log.Info().Str("domain", strippedDomain).Err(err).Msg("error parsing security.txt")
-		return nil, nil
+		return nil, err
 	}
 
 	t.Domain = strippedDomain
 	t.RetrievedFrom = body.url
 	if body.err != nil {
-		t.addHTTPError(body.err)
+		t.addError(body.err)
 	}
 	return t, nil
 }
@@ -161,7 +161,7 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 */
 	contentType := resp.Header.Get("Content-Type")
 	if contentType != "text/plain; charset=utf/8" {
-		err = fmt.Errorf(contentTypeErrorMsg, contentType)
+		err = NewContentTypeError(contentType)
 	}
 
 	return body, err
@@ -189,7 +189,7 @@ func checkRedirect(req *http.Request, via []*http.Request) error {
 	fromHost := baseDomain(from.URL.Hostname())
 	toHost := baseDomain(req.URL.Hostname())
 	if fromHost != toHost {
-		return fmt.Errorf("redirect from %s to %s, prohibiting redirect to different hostname", fromHost, toHost)
+		return NewRedirectError(fromHost, toHost)
 	}
 
 	return nil

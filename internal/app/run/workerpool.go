@@ -46,11 +46,10 @@ func (w *WorkerPool) work(errCh chan<- error) {
 	defer w.wg.Done()
 
 	for in := range(w.inCh) {
-		txt, err := w.client.GetSecurityTxt(in)
-		if err != nil {
-			errCh <- err
-			return
-		}
+		// For now, errCh is for fatal errors. The following function
+		// does not have those - we will deal with this error when we
+		// implement counters, or a "rejected domains" list, or something.
+		txt, _ := w.client.GetSecurityTxt(in)
 
 		if txt != nil {
 			w.outCh <- txt
