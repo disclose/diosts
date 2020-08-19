@@ -1,7 +1,6 @@
 package securitytxt
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -51,47 +50,52 @@ func New(in []byte) (*SecurityTxt, error) {
 		return nil, err
 	}
 
-	// Caller should deal with parsing errors
+	// Caller should deal with syntax errors
 	return txt, nil
 }
 
-func (t *SecurityTxt) AssignField(fieldName, value string) (errMsg string) {
+func (t *SecurityTxt) AssignField(field *Field) error {
 	// I've thought about doing this by automatically finding the right
 	// fields in the SecurityTxt struct with reflect, but there's no
 	// need to be that flexible, it's slower and it also hurts my head.
 
-	if value == "" {
-		return emptyValueErrorMsg
+	if field.Value == "" {
+		return NewEmptyValueError()
 	}
 
 	// fieldName is lower case
-	switch fieldName {
+	switch field.Key {
 	case "acknowledgments":
-		return assignListValue(fieldName, &t.Acknowledgments, value)
+		return assignListValue(&t.Acknowledgments, field)
 	case "acknowledgements":
-		assignListValue(fieldName, &t.Acknowledgments, value)
-		return acknowledgmentsErrorMsg
+		assignListValue(&t.Acknowledgments, field)
+		return NewAcknowledgmentsError()
 	case "canonical":
-		return assignListValue(fieldName, &t.Canonical, value)
+		return assignListValue(&t.Canonical, field)
 	case "contact":
-		return assignListValue(fieldName, &t.Contact, value)
+		return assignListValue(&t.Contact, field)
 	case "encryption":
-		return assignListValue(fieldName, &t.Encryption, value)
+		return assignListValue(&t.Encryption, field)
 	case "expires":
-		return assignTimeValue(fieldName, &t.Expires, value)
+		return assignTimeValue(&t.Expires, field)
 	case "hiring":
-		return assignListValue(fieldName, &t.Hiring, value)
+		return assignListValue(&t.Hiring, field)
 	case "policy":
-		return assignListValue(fieldName, &t.Policy, value)
+		return assignListValue(&t.Policy, field)
 	case "preferred-languages":
-		return assignStringValue(fieldName, &t.PreferredLanguages, value)
+		return assignStringValue(&t.PreferredLanguages, field)
 	default:
-		return fmt.Sprintf(unknownFieldErrorMsg, fieldName)
+		return NewUnknownFieldError(field)
 	}
 }
 
 // TODO: Deeper verification to check if everything is exactly to spec
 func (t *SecurityTxt) Validate() error {
+	//  The "Contact" field MUST always be present in a security.txt file.
+	if len(t.Contact) == 0 {
+		return NewMissingContactError()
+	}
+
 	return nil
 }
 
@@ -99,14 +103,14 @@ func (t *SecurityTxt) ParseErrors() []error {
 	return t.errors
 }
 
-func (t *SecurityTxt) addError(lineNo int, line, msg string) {
+func (t *SecurityTxt) addSyntaxError(lineNo int, line string, err error) {
 	t.errors = append(t.errors, SyntaxError{
 		lineNo: lineNo,
 		line: line,
-		msg: msg,
+		err: err,
 	})
 }
 
-func (t *SecurityTxt) addHTTPError(err error) {
-	t.errors = append(t.errors, HTTPError{err})
+func (t *SecurityTxt) addError(err error) {
+	t.errors = append(t.errors, err)
 }
