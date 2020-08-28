@@ -197,6 +197,11 @@ func checkRedirect(req *http.Request, via []*http.Request) error {
 
 // Get the base domain name
 func baseDomain(domain string) string {
+	// Remove trailing "." - technically valid, but not needed in this case
+	if domain[len(domain) - 1] == byte('.') {
+		domain = domain[:len(domain) - 2]
+	}
+
 	splits := strings.Split(domain, ".")
 
 	// This is just weird, but ok - probably ipv6 address
