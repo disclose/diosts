@@ -171,7 +171,7 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 // Make sure we don't leave this domain - always log something
 func (c *DomainClient) checkRedirect(req *http.Request, via []*http.Request) error {
 	from := via[len(via) - 1]
-	log.Debug().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
+	log.Info().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
 
 	if c.Config.StrictRedirect {
 		fromHost := baseDomain(from.URL.Hostname())
