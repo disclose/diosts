@@ -30,6 +30,12 @@ func init() {
 		run.DefaultConfig.NumThreads,
 		"Number of concurrent scraping threads",
 	)
+
+	rootCmd.Flags().BoolVar(&runConfig.SecurityTxt.StrictRedirect,
+		"strict-redirect",
+		false,
+		"Only allow redirects to same base domain",
+	)
 }
 
 func initApp() {

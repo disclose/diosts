@@ -57,8 +57,12 @@ func NewDomainClient(config *Config) (*DomainClient, error) {
 		KeepAlive: -1,
 	}
 
+	c := &DomainClient{
+		Config: config,
+	}
+
 	client := &http.Client{
-		CheckRedirect: checkRedirect,
+		CheckRedirect: c.checkRedirect,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: config.Insecure,
@@ -71,10 +75,7 @@ func NewDomainClient(config *Config) (*DomainClient, error) {
 		Timeout: config.RequestTimeout,
 	}
 
-	c := &DomainClient{
-		Config: config,
-		client: client,
-	}
+	c.client = client
 
 	return c, nil
 }
@@ -167,6 +168,22 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 	return body, err
 }
 
+// Make sure we don't leave this domain - always log something
+func (c *DomainClient) checkRedirect(req *http.Request, via []*http.Request) error {
+	from := via[len(via) - 1]
+	log.Debug().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
+
+	if c.Config.StrictRedirect {
+		fromHost := baseDomain(from.URL.Hostname())
+		toHost := baseDomain(req.URL.Hostname())
+		if fromHost != toHost {
+			return NewRedirectError(fromHost, toHost)
+		}
+	}
+
+	return nil
+}
+
 // Get bare domain from input
 func stripDomain(domain string) (string) {
 	// Check for schema, strip if present
@@ -179,20 +196,6 @@ func stripDomain(domain string) (string) {
 	domain = splits[0]
 
 	return domain
-}
-
-// Make sure we don't leave this domain - always log something
-func checkRedirect(req *http.Request, via []*http.Request) error {
-	from := via[len(via) - 1]
-	log.Debug().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
-
-	fromHost := baseDomain(from.URL.Hostname())
-	toHost := baseDomain(req.URL.Hostname())
-	if fromHost != toHost {
-		return NewRedirectError(fromHost, toHost)
-	}
-
-	return nil
 }
 
 // Get the base domain name
