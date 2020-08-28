@@ -9,6 +9,7 @@ type Config struct {
 	RequestTimeout time.Duration
 	TLSHandshakeTimeout time.Duration
 	Insecure bool
+	StrictRedirect bool
 }
 
 var DefaultConfig = Config{
@@ -16,6 +17,7 @@ var DefaultConfig = Config{
 	RequestTimeout: 10 * time.Second,
 	TLSHandshakeTimeout: 5 * time.Second,
 	Insecure: false,
+	StrictRedirect: false,
 }
 
 func NewConfig() *Config {
