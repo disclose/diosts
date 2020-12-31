@@ -10,6 +10,7 @@ import (
 
 type Fields struct {
 	ProgramName string `json:"program_name,omitempty"`
+	SecurityTxtDomain string `json:"security_txt_domain,omitempty"`
 	PolicyURL string `json:"policy_url,omitempty"`
 	ContactURL string `json:"contact_url"`
 	LaunchDate *time.Time `json:"launch_date,omitempty"`
@@ -27,7 +28,7 @@ type Fields struct {
 
 func FromSecurityTxt(txt *securitytxt.SecurityTxt) *Fields {
 	f := &Fields{
-		ProgramName: txt.Domain,
+		SecurityTxtDomain: txt.Domain,
 		PreferredLanguages: txt.PreferredLanguages,
 	}
 
