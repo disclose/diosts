@@ -13,15 +13,17 @@ import (
 
 type Writer struct {
 	*Config
+	version string
 
 	inCh <-chan *securitytxt.SecurityTxt
 
 	wg sync.WaitGroup
 }
 
-func NewWriter(config *Config, inCh <-chan *securitytxt.SecurityTxt) (*Writer, error) {
+func NewWriter(version string, config *Config, inCh <-chan *securitytxt.SecurityTxt) (*Writer, error) {
 	w := &Writer{
 		Config: config,
+		version: version,
 		inCh: inCh,
 	}
 
@@ -52,7 +54,7 @@ func (w *Writer) Start(errCh chan<- error) error {
 				}
 			}
 
-			fields := discloseio.FromSecurityTxt(txt)
+			fields := discloseio.FromSecurityTxt(w.version, txt)
 			out, err := json.MarshalIndent(fields, "  ", "  ")
 			if err != nil {
 				log.Warn().Err(err).Msg("error encoding json")

@@ -14,7 +14,7 @@ type App struct {
 	pool *WorkerPool
 }
 
-func New(config *Config) (*App, error) {
+func New(version string, config *Config) (*App, error) {
 	domainCh := make(chan string, config.NumThreads)
 	txtCh := make(chan *securitytxt.SecurityTxt, config.NumThreads)
 
@@ -23,7 +23,7 @@ func New(config *Config) (*App, error) {
 		return nil, err
 	}
 
-	writer, err := NewWriter(config, txtCh)
+	writer, err := NewWriter(version, config, txtCh)
 	if err != nil {
 		return nil, err
 	}
