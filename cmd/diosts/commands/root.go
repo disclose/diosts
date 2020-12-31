@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Use: "diosts",
 	Short: "Scrape security.txt from list of input domains on stdin",
 	Run: func(cmd *cobra.Command, args []string) {
-		onRun()
+		onRun(cmd.Version)
 	},
 }
 
@@ -57,8 +57,8 @@ func Execute(version string) {
 	}
 }
 
-func onRun() {
-	app, err := run.New(runConfig)
+func onRun(version string) {
+	app, err := run.New(version, runConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}

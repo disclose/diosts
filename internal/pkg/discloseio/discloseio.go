@@ -1,18 +1,41 @@
 package discloseio
 
 import (
+	"fmt"
 	"net/url"
-	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/disclose/diosts/pkg/securitytxt"
 )
 
-type Fields struct {
-	ProgramName string `json:"program_name,omitempty"`
+// diosts-specific metadata
+type Metadata struct {
 	SecurityTxtDomain string `json:"security_txt_domain,omitempty"`
+	Source string `json:"source,omitempty"`
+	RetrievalURL string `json:"retrieval_url,omitempty"`
+	LastUpdate *time.Time `json:"last_update,omitempty"`
+}
+
+func NewMetadata(version string) *Metadata {
+	now := time.Now().Truncate(time.Second).UTC()
+
+	m := &Metadata{
+		Source: fmt.Sprintf("diosts-%s", version),
+		LastUpdate: &now,
+	}
+
+	return m
+}
+
+type Fields struct {
+	*Metadata
+
+	ProgramName string `json:"program_name,omitempty"`
 	PolicyURL string `json:"policy_url,omitempty"`
 	ContactURL string `json:"contact_url"`
+	ContactEmail string `json:"contact_email,omitempty"`
 	LaunchDate *time.Time `json:"launch_date,omitempty"`
 	OffersBounty string `json:"offers_bounty,omitempty"`
 	OffersSwag bool `json:"offers_swag,omitempty"`
@@ -26,9 +49,13 @@ type Fields struct {
 	PreferredLanguages string `json:"preferred_languages,omitempty"`
 }
 
-func FromSecurityTxt(txt *securitytxt.SecurityTxt) *Fields {
+func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
+	m := NewMetadata(version)
+	m.SecurityTxtDomain = txt.Domain
+	m.RetrievalURL = txt.RetrievedFrom
+
 	f := &Fields{
-		SecurityTxtDomain: txt.Domain,
+		Metadata: m,
 		PreferredLanguages: txt.PreferredLanguages,
 	}
 
@@ -54,18 +81,29 @@ func FromSecurityTxt(txt *securitytxt.SecurityTxt) *Fields {
 		f.SecuritytxtURL = txt.Canonical[0]
 	}
 
-	// For contact, we'll find the first web link. If not found, we resort
-	// to just the first entry
+	// Split up Contact in ContactURL and ContactEmail
 	for _, c := range(txt.Contact) {
 		url, err := url.Parse(c)
 		if err != nil {
+			// Should be done in securitytxt validation
+			log.Warn().Str("domain", txt.Domain).Err(err).Msg("invalid uri for contact")
 			continue
 		}
 
-		if strings.HasPrefix(url.Scheme, "http") {
-			f.ContactURL = c
-			break
+		// We use the first of each
+		switch url.Scheme {
+		case "http", "https":
+			if f.ContactURL != "" {
+				f.ContactURL = c
+			}
+		case "mailto":
+			if f.ContactEmail != "" {
+				f.ContactEmail = c
+			}
+		default:
+			log.Warn().Str("domain", txt.Domain).Str("scheme", url.Scheme).Msg("invalid url scheme for contact")
 		}
+
 	}
 
 	if len(txt.Contact) > 0 && f.ContactURL == "" {
