@@ -49,7 +49,7 @@ At this point, we blindly accept redirects within the same organization (e.g., g
 
 ## Canonical
 
-A `security.txt` should contain a `Canonical` field with a URL pointing to the canoncial version of the `security.txt`. We should check if we retrieved the `security.txt` from the canoncial URL and if not, do so.
+A `security.txt` should contain a `Canonical` field with a URL pointing to the canonical version of the `security.txt`. We should check if we retrieved the `security.txt` from the canonical URL and if not, do so.
 
 ## Program name
 
