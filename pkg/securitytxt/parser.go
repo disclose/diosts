@@ -51,7 +51,7 @@ func getFieldValue(line string) (*Field, error) {
 
 	// Printable US-ASCII followed by optional white space; case insensitive.
 	field := &Field{
-		Key: strings.ToLower(strings.TrimRightFunc(split[0], unicode.IsSpace)),
+		Key:   strings.ToLower(strings.TrimRightFunc(split[0], unicode.IsSpace)),
 		Value: strings.TrimSpace(split[1]),
 	}
 
@@ -95,19 +95,31 @@ func assignTimeValue(t *time.Time, field *Field) error {
 		return NewMultipleValueError(field)
 	}
 
-	var err error
+	value := field.Value
 
-	// Check if we start with day number, else assume day name
-	if unicode.IsDigit(rune(field.Value[0])) {
-		// "02 Jan 06 15:04 -0700"
-		*t, err = time.Parse(time.RFC822Z, field.Value)
-	} else {
-		// "Mon, 02 Jan 2006 15:04:05 -0700" 
-		*t, err = time.Parse(time.RFC1123Z, field.Value)
+	// Try parsing in various formats as specified in RFC 9116
+	// ISO 8601 / RFC 3339 format is commonly used for Expires field
+	formats := []string{
+		time.RFC3339,               // "2006-01-02T15:04:05Z07:00" - ISO 8601 / RFC 3339
+		time.RFC1123Z,              // "Mon, 02 Jan 2006 15:04:05 -0700" - RFC 5322 with numeric zone
+		time.RFC1123,               // "Mon, 02 Jan 2006 15:04:05 MST" - RFC 5322
+		time.RFC822Z,               // "02 Jan 06 15:04 -0700" - RFC 5322 with numeric zone
+		time.RFC822,                // "02 Jan 06 15:04 MST" - RFC 5322
+		"2006-01-02T15:04:05Z",     // ISO 8601 without timezone offset
+		"2006-01-02T15:04:05.000Z", // ISO 8601 with milliseconds
+		"2006-01-02",               // Simple date format
 	}
 
-	if err != nil {
-		return NewInvalidTimeError(field, err)
+	var lastErr error
+	for _, format := range formats {
+		parsed, parseErr := time.Parse(format, value)
+		if parseErr == nil {
+			*t = parsed
+			return nil
+		}
+		lastErr = parseErr
 	}
-	return nil
+
+	// If all parsing attempts failed
+	return NewInvalidTimeError(field, lastErr)
 }

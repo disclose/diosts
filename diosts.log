@@ -1,0 +1,11 @@
+{"level":"info","domain":"microsoft.com ","time":"2025-04-24T03:23:38+08:00","message":"no security.txt found"}
+{"level":"info","from":"https://apple.com/.well-known/security.txt","to":"https://www.apple.com/.well-known/security.txt","time":"2025-04-24T03:23:38+08:00","message":"redirecting"}
+{"level":"info","from":"https://google.com/.well-known/security.txt","to":"https://www.google.com/.well-known/security.txt","time":"2025-04-24T03:23:38+08:00","message":"redirecting"}
+{"level":"info","domain":"google.com","error":"Mandatory field 'Expires' not present as per section 2.5.5 of RFC 9116","time":"2025-04-24T03:23:38+08:00","message":"invalid security.txt"}
+{"level":"info","domain":"google.com","time":"2025-04-24T03:23:38+08:00","message":"security.txt found"}
+{"level":"info","domain":"google.com","error":"Error in line 6: invalid time in field 'expires' according to section 3.3 of RFC5322: parsing time \"2030-04-01T00:00:00z\": extra text: \"T00:00:00z\"","time":"2025-04-24T03:23:38+08:00","message":"security.txt validation error"}
+{"level":"info","domain":"github.com","error":"Mandatory field 'Expires' not present as per section 2.5.5 of RFC 9116","time":"2025-04-24T03:23:38+08:00","message":"invalid security.txt"}
+{"level":"info","domain":"github.com","time":"2025-04-24T03:23:38+08:00","message":"security.txt found"}
+{"level":"info","domain":"github.com","error":"Error in line 6: invalid time in field 'expires' according to section 3.3 of RFC5322: parsing time \"2025-05-23T19:23:38z\": extra text: \"T19:23:38z\"","time":"2025-04-24T03:23:38+08:00","message":"security.txt validation error"}
+{"level":"info","domain":"apple.com","time":"2025-04-24T03:23:39+08:00","message":"security.txt found"}
+{"level":"info","time":"2025-04-24T03:23:39+08:00","message":"all done. bye bye!"}

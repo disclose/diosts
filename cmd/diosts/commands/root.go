@@ -11,7 +11,7 @@ import (
 var runConfig = run.NewConfig()
 
 var rootCmd = &cobra.Command{
-	Use: "diosts",
+	Use:   "diosts",
 	Short: "Scrape security.txt from list of input domains on stdin",
 	Run: func(cmd *cobra.Command, args []string) {
 		onRun(cmd.Version)
@@ -29,6 +29,12 @@ func init() {
 		"threads", "t",
 		run.DefaultConfig.NumThreads,
 		"Number of concurrent scraping threads",
+	)
+
+	rootCmd.Flags().StringVarP(&runConfig.NonCompliantOutputPath,
+		"non-compliant", "n",
+		"",
+		"Path to output file for non-RFC-compliant security.txt files",
 	)
 
 	rootCmd.Flags().BoolVar(&runConfig.SecurityTxt.StrictRedirect,

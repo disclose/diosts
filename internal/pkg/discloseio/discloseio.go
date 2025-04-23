@@ -12,17 +12,17 @@ import (
 
 // diosts-specific metadata
 type Metadata struct {
-	SecurityTxtDomain string `json:"security_txt_domain,omitempty"`
-	Source string `json:"source,omitempty"`
-	RetrievalURL string `json:"retrieval_url,omitempty"`
-	LastUpdate *time.Time `json:"last_update,omitempty"`
+	SecurityTxtDomain string     `json:"security_txt_domain,omitempty"`
+	Source            string     `json:"source,omitempty"`
+	RetrievalURL      string     `json:"retrieval_url,omitempty"`
+	LastUpdate        *time.Time `json:"last_update,omitempty"`
 }
 
 func NewMetadata(version string) *Metadata {
 	now := time.Now().Truncate(time.Second).UTC()
 
 	m := &Metadata{
-		Source: fmt.Sprintf("diosts-%s", version),
+		Source:     fmt.Sprintf("diosts-%s", version),
 		LastUpdate: &now,
 	}
 
@@ -32,21 +32,24 @@ func NewMetadata(version string) *Metadata {
 type Fields struct {
 	*Metadata
 
-	ProgramName string `json:"program_name,omitempty"`
-	PolicyURL string `json:"policy_url,omitempty"`
-	ContactURL string `json:"contact_url"`
-	ContactEmail string `json:"contact_email,omitempty"`
-	LaunchDate *time.Time `json:"launch_date,omitempty"`
-	OffersBounty string `json:"offers_bounty,omitempty"`
-	OffersSwag bool `json:"offers_swag,omitempty"`
-	HallOfFame string `json:"hall_of_fame,omitempty"`
-	SafeHarbor string `json:"safe_harbor,omitempty"`
-	PublicDisclosure string `json:"public_disclosure,omitempty"`
-	DisclosureTimelineDays int `json:"disclosure_timeline,omitempty"`
-	PGPKey string `json:"pgp_key,omitempty"`
-	Hiring string `json:"hiring,omitempty"`
-	SecuritytxtURL string `json:"securitytxt_url,omitempty"`
-	PreferredLanguages string `json:"preferred_languages,omitempty"`
+	ProgramName            string     `json:"program_name,omitempty"`
+	PolicyURL              string     `json:"policy_url,omitempty"`
+	ContactURL             string     `json:"contact_url"`
+	ContactEmail           string     `json:"contact_email,omitempty"`
+	LaunchDate             *time.Time `json:"launch_date,omitempty"`
+	OffersBounty           string     `json:"offers_bounty,omitempty"`
+	OffersSwag             bool       `json:"offers_swag,omitempty"`
+	HallOfFame             string     `json:"hall_of_fame,omitempty"`
+	SafeHarbor             string     `json:"safe_harbor,omitempty"`
+	PublicDisclosure       string     `json:"public_disclosure,omitempty"`
+	DisclosureTimelineDays int        `json:"disclosure_timeline,omitempty"`
+	PGPKey                 string     `json:"pgp_key,omitempty"`
+	Hiring                 string     `json:"hiring,omitempty"`
+	SecuritytxtURL         string     `json:"securitytxt_url,omitempty"`
+	PreferredLanguages     string     `json:"preferred_languages,omitempty"`
+	ExpiresAt              *time.Time `json:"expires_at,omitempty"`
+	RFCCompliant           bool       `json:"rfc_compliant,omitempty"`
+	ComplianceIssues       []string   `json:"compliance_issues,omitempty"`
 }
 
 func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
@@ -55,8 +58,16 @@ func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
 	m.RetrievalURL = txt.RetrievedFrom
 
 	f := &Fields{
-		Metadata: m,
+		Metadata:           m,
 		PreferredLanguages: txt.PreferredLanguages,
+		RFCCompliant:       txt.IsRFCCompliant,
+		ComplianceIssues:   txt.ComplianceIssues,
+	}
+
+	// Add Expires field
+	if !txt.Expires.IsZero() {
+		expiresAt := txt.Expires
+		f.ExpiresAt = &expiresAt
 	}
 
 	// For fields that can have multiple entries in security.txt, we
@@ -82,7 +93,7 @@ func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
 	}
 
 	// Split up Contact in ContactURL and ContactEmail
-	for _, c := range(txt.Contact) {
+	for _, c := range txt.Contact {
 		url, err := url.Parse(c)
 		if err != nil {
 			// Should be done in securitytxt validation

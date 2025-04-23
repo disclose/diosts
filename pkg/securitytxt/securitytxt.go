@@ -1,25 +1,30 @@
 package securitytxt
 
 import (
+	"fmt"
 	"time"
 )
 
-// https://tools.ietf.org/html/draft-foudil-securitytxt-09#section-3.5
+// https://www.rfc-editor.org/rfc/rfc9116
 // Note: we don't use the format tag yet.
 type SecurityTxt struct {
 	// Official fields
-	Acknowledgments []string `format:"secure-url"`
-	Canonical []string `format:"secure-url"`
-	Contact []string `format:"contact-uri"`
-	Encryption []string `format:"key-uri"`
-	Expires time.Time
-	Hiring []string `format:"secure-url"`
-	Policy []string `format:"secure-url"`
-	PreferredLanguages string `format:"rfc5646"`
+	Acknowledgments    []string `format:"secure-url"`
+	Canonical          []string `format:"secure-url"`
+	Contact            []string `format:"contact-uri"`
+	Encryption         []string `format:"key-uri"`
+	Expires            time.Time
+	Hiring             []string `format:"secure-url"`
+	Policy             []string `format:"secure-url"`
+	PreferredLanguages string   `format:"rfc5646"`
 
 	// Other useful fields
-	Domain string
+	Domain        string
 	RetrievedFrom string
+
+	// RFC compliance tracking
+	IsRFCCompliant   bool
+	ComplianceIssues []string
 
 	// TODO: Verify signature and store signing key
 	signed bool
@@ -39,7 +44,8 @@ func New(in []byte) (*SecurityTxt, error) {
 	}
 
 	txt := &SecurityTxt{
-		signed: msg.Signed(),
+		signed:         msg.Signed(),
+		IsRFCCompliant: true, // Start with assuming compliance
 	}
 
 	// Note: try and collect as many fields as possible and as many errors as possible
@@ -69,6 +75,8 @@ func (t *SecurityTxt) AssignField(field *Field) error {
 		return assignListValue(&t.Acknowledgments, field)
 	case "acknowledgements":
 		assignListValue(&t.Acknowledgments, field)
+		t.IsRFCCompliant = false
+		t.ComplianceIssues = append(t.ComplianceIssues, "Using 'acknowledgements' instead of 'acknowledgments'")
 		return NewAcknowledgmentsError()
 	case "canonical":
 		return assignListValue(&t.Canonical, field)
@@ -85,15 +93,33 @@ func (t *SecurityTxt) AssignField(field *Field) error {
 	case "preferred-languages":
 		return assignStringValue(&t.PreferredLanguages, field)
 	default:
+		t.IsRFCCompliant = false
+		t.ComplianceIssues = append(t.ComplianceIssues, "Contains unknown field: "+field.Key)
 		return NewUnknownFieldError(field)
 	}
 }
 
-// TODO: Deeper verification to check if everything is exactly to spec
+// Validate checks if security.txt file adheres to RFC 9116
 func (t *SecurityTxt) Validate() error {
 	//  The "Contact" field MUST always be present in a security.txt file.
 	if len(t.Contact) == 0 {
+		t.IsRFCCompliant = false
+		t.ComplianceIssues = append(t.ComplianceIssues, "Missing required 'Contact' field")
 		return NewMissingContactError()
+	}
+
+	// Check if Expires field is present and valid
+	if t.Expires.IsZero() {
+		t.IsRFCCompliant = false
+		t.ComplianceIssues = append(t.ComplianceIssues, "Missing required 'Expires' field")
+		return NewMissingExpiresError()
+	}
+
+	// Check if Expires date is in the past
+	if time.Now().After(t.Expires) {
+		t.IsRFCCompliant = false
+		t.ComplianceIssues = append(t.ComplianceIssues, "Expired security.txt file")
+		return NewExpiredError()
 	}
 
 	return nil
@@ -106,11 +132,15 @@ func (t *SecurityTxt) ParseErrors() []error {
 func (t *SecurityTxt) addSyntaxError(lineNo int, line string, err error) {
 	t.errors = append(t.errors, SyntaxError{
 		lineNo: lineNo,
-		line: line,
-		err: err,
+		line:   line,
+		err:    err,
 	})
+	t.IsRFCCompliant = false
+	t.ComplianceIssues = append(t.ComplianceIssues, fmt.Sprintf("Syntax error in line %d: %s", lineNo, err.Error()))
 }
 
 func (t *SecurityTxt) addError(err error) {
 	t.errors = append(t.errors, err)
+	t.IsRFCCompliant = false
+	t.ComplianceIssues = append(t.ComplianceIssues, err.Error())
 }
