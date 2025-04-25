@@ -19,27 +19,27 @@ type DomainClient struct {
 }
 
 type DomainBody struct {
-	url string
+	url  string
 	body []byte
-	err error
+	err  error
 }
 
 /*
 4.1.  Web-based services
 
-   Web-based services MUST place the security.txt file under the
-   "/.well-known/" path; e.g. https://example.com/.well-known/
-   security.txt as per [RFC8615].  For legacy compatibility, a
-   security.txt file might be placed at the top-level path or redirect
-   (as per section 6.4 of [RFC7231]) to the security.txt file under the
-   "/.well-known/" path.  If a "security.txt" file is present in both
-   locations, the one in the "/.well-known/" path MUST be used.
+	Web-based services MUST place the security.txt file under the
+	"/.well-known/" path; e.g. https://example.com/.well-known/
+	security.txt as per [RFC8615].  For legacy compatibility, a
+	security.txt file might be placed at the top-level path or redirect
+	(as per section 6.4 of [RFC7231]) to the security.txt file under the
+	"/.well-known/" path.  If a "security.txt" file is present in both
+	locations, the one in the "/.well-known/" path MUST be used.
 
-   Retrieval of "security.txt" files and resources indicated within such
-   files may result in a redirect (as per section 6.4 of [RFC7231]).
-   Researchers should perform additional triage (as per Section 6.1) to
-   make sure these redirects are not malicious or point to resources
-   controlled by an attacker.
+	Retrieval of "security.txt" files and resources indicated within such
+	files may result in a redirect (as per section 6.4 of [RFC7231]).
+	Researchers should perform additional triage (as per Section 6.1) to
+	make sure these redirects are not malicious or point to resources
+	controlled by an attacker.
 */
 var schemas = []string{
 	"https",
@@ -53,7 +53,7 @@ var locations = []string{
 
 func NewDomainClient(config *Config) (*DomainClient, error) {
 	dialer := net.Dialer{
-		Timeout: config.DialTimeout,
+		Timeout:   config.DialTimeout,
 		KeepAlive: -1,
 	}
 
@@ -67,10 +67,10 @@ func NewDomainClient(config *Config) (*DomainClient, error) {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: config.Insecure,
 			},
-			Dial: dialer.Dial,
+			Dial:                dialer.Dial,
 			TLSHandshakeTimeout: config.TLSHandshakeTimeout,
-			DisableKeepAlives: true,
-			MaxIdleConns: 1, // We only use connections for a single request
+			DisableKeepAlives:   true,
+			MaxIdleConns:        1, // We only use connections for a single request
 		},
 		Timeout: config.RequestTimeout,
 	}
@@ -107,10 +107,10 @@ func (c *DomainClient) GetSecurityTxt(domain string) (*SecurityTxt, error) {
 }
 
 // Iterate over valid endpoints and retrieve body
-func (c *DomainClient) GetDomainBody(domain string) (*DomainBody) {
+func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
 	// security.txt endpoints in order of spec until we find one
-	for _, schema := range(schemas) {
-		for _, location := range(locations) {
+	for _, schema := range schemas {
+		for _, location := range locations {
 			url := fmt.Sprintf("%s://%s/%s", schema, domain, location)
 			body, err := c.GetBody(url)
 			// No body means fatal retrieval error
@@ -126,9 +126,9 @@ func (c *DomainClient) GetDomainBody(domain string) (*DomainBody) {
 			}
 
 			return &DomainBody{
-				url: url,
+				url:  url,
 				body: body,
-				err: err,
+				err:  err,
 			}
 		}
 	}
@@ -155,13 +155,17 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-/* 
-   It MUST have a Content-Type of "text/plain" with the
-   default charset parameter set to "utf-8" (as per section 4.1.3 of
-   [RFC2046]).
-*/
+	/*
+	   It MUST have a Content-Type of "text/plain" with the
+	   default charset parameter set to "utf-8" (as per section 4.1.3 of
+	   [RFC2046]).
+	*/
 	contentType := resp.Header.Get("Content-Type")
-	if contentType != "text/plain; charset=utf/8" {
+	// According to RFC 9116, Content-Type should be text/plain with utf-8 charset
+	// Accept various forms of this content type (with or without charset parameter)
+	if contentType != "text/plain; charset=utf-8" &&
+		contentType != "text/plain" &&
+		!strings.HasPrefix(contentType, "text/plain;") {
 		err = NewContentTypeError(contentType)
 	}
 
@@ -170,7 +174,7 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 
 // Make sure we don't leave this domain - always log something
 func (c *DomainClient) checkRedirect(req *http.Request, via []*http.Request) error {
-	from := via[len(via) - 1]
+	from := via[len(via)-1]
 	log.Info().Str("from", from.URL.String()).Str("to", req.URL.String()).Msg("redirecting")
 
 	if c.Config.StrictRedirect {
@@ -185,7 +189,7 @@ func (c *DomainClient) checkRedirect(req *http.Request, via []*http.Request) err
 }
 
 // Get bare domain from input
-func stripDomain(domain string) (string) {
+func stripDomain(domain string) string {
 	// Check for schema, strip if present
 	if i := strings.Index(domain, "://"); i >= 0 {
 		domain = domain[i+3:]
@@ -201,8 +205,8 @@ func stripDomain(domain string) (string) {
 // Get the base domain name
 func baseDomain(domain string) string {
 	// Remove trailing "." - technically valid, but not needed in this case
-	if domain[len(domain) - 1] == byte('.') {
-		domain = domain[:len(domain) - 2]
+	if domain[len(domain)-1] == byte('.') {
+		domain = domain[:len(domain)-2]
 	}
 
 	splits := strings.Split(domain, ".")
@@ -214,9 +218,9 @@ func baseDomain(domain string) string {
 
 	// Check if this is an IP or domain name; assuming TLD cannot
 	// start with a number
-	if unicode.IsDigit(rune(splits[len(splits) - 1][0])) {
+	if unicode.IsDigit(rune(splits[len(splits)-1][0])) {
 		return domain
 	}
 
-	return strings.Join(splits[len(splits) - 2:], ".")
+	return strings.Join(splits[len(splits)-2:], ".")
 }
