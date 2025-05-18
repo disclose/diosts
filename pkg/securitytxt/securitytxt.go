@@ -17,6 +17,7 @@ type SecurityTxt struct {
 	Hiring             []string `format:"secure-url"`
 	Policy             []string `format:"secure-url"`
 	PreferredLanguages string   `format:"rfc5646"`
+	CSAF               []string `format:"secure-url"` // Common Security Advisory Framework field
 
 	// Other useful fields
 	Domain        string
@@ -92,6 +93,8 @@ func (t *SecurityTxt) AssignField(field *Field) error {
 		return assignListValue(&t.Policy, field)
 	case "preferred-languages":
 		return assignStringValue(&t.PreferredLanguages, field)
+	case "csaf":
+		return assignListValue(&t.CSAF, field)
 	default:
 		t.IsRFCCompliant = false
 		t.ComplianceIssues = append(t.ComplianceIssues, "Contains unknown field: "+field.Key)

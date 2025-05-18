@@ -50,6 +50,7 @@ type Fields struct {
 	ExpiresAt              *time.Time `json:"expires_at,omitempty"`
 	RFCCompliant           bool       `json:"rfc_compliant,omitempty"`
 	ComplianceIssues       []string   `json:"compliance_issues,omitempty"`
+	CSAF                   string     `json:"csaf,omitempty"`
 }
 
 func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
@@ -90,6 +91,10 @@ func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
 
 	if len(txt.Canonical) > 0 {
 		f.SecuritytxtURL = txt.Canonical[0]
+	}
+
+	if len(txt.CSAF) > 0 {
+		f.CSAF = txt.CSAF[0]
 	}
 
 	// Split up Contact in ContactURL and ContactEmail
