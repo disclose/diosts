@@ -4,12 +4,12 @@ The disclose.io security.txt scraper (`diosts`) takes a list of domains as the i
 
 ## Installation
 
-### Prerequisites: 
-- Go 1.13 or newer
+### Prerequisites:
+- Go 1.22 or newer
 
 ### Option 1: Using go install (recommended)
 ```bash
-# Install the latest version (v0.2.2)
+# Install the latest version (v0.2.3)
 go install github.com/disclose/diosts/cmd/diosts@latest
 
 # The binary will be installed to your $GOPATH/bin directory
@@ -64,11 +64,12 @@ The tool supports all fields defined in RFC 9116 plus extensions:
 
 ## RFC 9116 Compliance
 
-The tool fully supports RFC 9116 compliance checking and will report:
-- Whether a security.txt file is RFC compliant 
+The tool checks and reports:
+- Whether a security.txt file is RFC compliant
 - Specific compliance issues found
-- Expires date checking (required field per RFC 9116)
-- Field validation according to the standard
+- Required-field presence for `Contact` and `Expires`
+- Expired `Expires` values
+- Common field-value issues such as insecure canonical URLs, malformed contact URIs, and invalid preferred-language tags
 
 ## Notes
 
@@ -82,7 +83,7 @@ According to the specifications, a redirect should be followed when retrieving `
 > inspections of such redirects is recommended before using the
 > information contained within the file.
 
-At this point, we blindly accept redirects within the same organization (e.g., google.com to www.google.com is accepted). Any other redirect is logged as an error, to be dealt with later.
+By default, redirects are followed and recorded in the output metadata. With `--strict-redirect`, redirects are limited to the same registrable domain (for example, `www.google.com` and `google.com` are treated as the same base domain).
 
 ### Canonical
 
@@ -90,4 +91,4 @@ A `security.txt` should contain a `Canonical` field with a URL pointing to the c
 
 ### Program name
 
-Currently, we use the input domain name as program name. This might or might not be correct, especially with redirects and canonical URL entries. To be discussed later.
+Currently, we use the input domain name as program name. This keeps output stable, but it may still differ from a canonical or redirected endpoint.

@@ -104,28 +104,36 @@ func (t *SecurityTxt) AssignField(field *Field) error {
 
 // Validate checks if security.txt file adheres to RFC 9116
 func (t *SecurityTxt) Validate() error {
+	var firstErr error
+
+	record := func(issue string, err error) {
+		if err == nil {
+			return
+		}
+		if firstErr == nil {
+			firstErr = err
+		}
+		t.addComplianceIssue(issue)
+	}
+
 	//  The "Contact" field MUST always be present in a security.txt file.
 	if len(t.Contact) == 0 {
-		t.IsRFCCompliant = false
-		t.ComplianceIssues = append(t.ComplianceIssues, "Missing required 'Contact' field")
-		return NewMissingContactError()
+		record("Missing required 'Contact' field", NewMissingContactError())
 	}
 
 	// Check if Expires field is present and valid
 	if t.Expires.IsZero() {
-		t.IsRFCCompliant = false
-		t.ComplianceIssues = append(t.ComplianceIssues, "Missing required 'Expires' field")
-		return NewMissingExpiresError()
+		record("Missing required 'Expires' field", NewMissingExpiresError())
 	}
 
 	// Check if Expires date is in the past
-	if time.Now().After(t.Expires) {
-		t.IsRFCCompliant = false
-		t.ComplianceIssues = append(t.ComplianceIssues, "Expired security.txt file")
-		return NewExpiredError()
+	if !t.Expires.IsZero() && time.Now().After(t.Expires) {
+		record("Expired security.txt file", NewExpiredError())
 	}
 
-	return nil
+	t.validateFieldValues(&firstErr)
+
+	return firstErr
 }
 
 func (t *SecurityTxt) ParseErrors() []error {
@@ -142,8 +150,44 @@ func (t *SecurityTxt) addSyntaxError(lineNo int, line string, err error) {
 	t.ComplianceIssues = append(t.ComplianceIssues, fmt.Sprintf("Syntax error in line %d: %s", lineNo, err.Error()))
 }
 
+func (t *SecurityTxt) addComplianceIssue(issue string) {
+	t.IsRFCCompliant = false
+	t.ComplianceIssues = append(t.ComplianceIssues, issue)
+}
+
 func (t *SecurityTxt) addError(err error) {
 	t.errors = append(t.errors, err)
-	t.IsRFCCompliant = false
-	t.ComplianceIssues = append(t.ComplianceIssues, err.Error())
+	t.addComplianceIssue(err.Error())
+}
+
+func (t *SecurityTxt) validateFieldValues(firstErr *error) {
+	validateList := func(fieldName string, values []string, fn ValidateFunc) {
+		for _, value := range values {
+			if err := fn(value); err != nil {
+				validationErr := fmt.Errorf("invalid %s value %q: %w", fieldName, value, err)
+				if *firstErr == nil {
+					*firstErr = validationErr
+				}
+				t.addError(validationErr)
+			}
+		}
+	}
+
+	validateList("Acknowledgments", t.Acknowledgments, ValidateSecureURL)
+	validateList("Canonical", t.Canonical, ValidateSecureURL)
+	validateList("Contact", t.Contact, ValidateContactURI)
+	validateList("Encryption", t.Encryption, ValidateKeyURI)
+	validateList("Hiring", t.Hiring, ValidateSecureURL)
+	validateList("Policy", t.Policy, ValidateSecureURL)
+	validateList("CSAF", t.CSAF, ValidateSecureURL)
+
+	if t.PreferredLanguages != "" {
+		if err := ValidateRFC5646(t.PreferredLanguages); err != nil {
+			validationErr := fmt.Errorf("invalid Preferred-Languages value %q: %w", t.PreferredLanguages, err)
+			if *firstErr == nil {
+				*firstErr = validationErr
+			}
+			t.addError(validationErr)
+		}
+	}
 }

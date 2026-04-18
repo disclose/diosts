@@ -3,6 +3,7 @@ package discloseio
 import (
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -60,6 +61,7 @@ func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
 
 	f := &Fields{
 		Metadata:           m,
+		ProgramName:        txt.Domain,
 		PreferredLanguages: txt.PreferredLanguages,
 		RFCCompliant:       txt.IsRFCCompliant,
 		ComplianceIssues:   txt.ComplianceIssues,
@@ -109,12 +111,12 @@ func FromSecurityTxt(version string, txt *securitytxt.SecurityTxt) *Fields {
 		// We use the first of each
 		switch url.Scheme {
 		case "http", "https":
-			if f.ContactURL != "" {
+			if f.ContactURL == "" {
 				f.ContactURL = c
 			}
 		case "mailto":
-			if f.ContactEmail != "" {
-				f.ContactEmail = c
+			if f.ContactEmail == "" {
+				f.ContactEmail = strings.TrimPrefix(c, "mailto:")
 			}
 		default:
 			log.Warn().Str("domain", txt.Domain).Str("scheme", url.Scheme).Msg("invalid url scheme for contact")

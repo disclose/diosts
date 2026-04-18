@@ -3,13 +3,13 @@ package securitytxt
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
-	"unicode"
 
 	"github.com/rs/zerolog/log"
+	"golang.org/x/net/publicsuffix"
 )
 
 type DomainClient struct {
@@ -112,7 +112,7 @@ func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
 	for _, schema := range schemas {
 		for _, location := range locations {
 			url := fmt.Sprintf("%s://%s/%s", schema, domain, location)
-			body, err := c.GetBody(url)
+			body, finalURL, err := c.GetBody(url)
 			// No body means fatal retrieval error
 			if body == nil {
 				log.Debug().Err(err).Str("url", url).Msg("error retrieving")
@@ -126,7 +126,7 @@ func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
 			}
 
 			return &DomainBody{
-				url:  url,
+				url:  finalURL,
 				body: body,
 				err:  err,
 			}
@@ -139,21 +139,21 @@ func (c *DomainClient) GetDomainBody(domain string) *DomainBody {
 
 // Returning an error doesn't mean we don't have a body. If we can, we'll
 // always read and return a body
-func (c *DomainClient) GetBody(url string) ([]byte, error) {
+func (c *DomainClient) GetBody(url string) ([]byte, string, error) {
 	log.Debug().Str("url", url).Msg("retrieving")
 	resp, err := c.client.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unable to retrieve %s, returned status %d", url, resp.StatusCode)
+		return nil, "", fmt.Errorf("unable to retrieve %s, returned status %d", url, resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	/*
 	   It MUST have a Content-Type of "text/plain" with the
@@ -169,7 +169,7 @@ func (c *DomainClient) GetBody(url string) ([]byte, error) {
 		err = NewContentTypeError(contentType)
 	}
 
-	return body, err
+	return body, resp.Request.URL.String(), err
 }
 
 // Make sure we don't leave this domain - always log something
@@ -204,23 +204,24 @@ func stripDomain(domain string) string {
 
 // Get the base domain name
 func baseDomain(domain string) string {
+	if domain == "" {
+		return ""
+	}
+
 	// Remove trailing "." - technically valid, but not needed in this case
-	if domain[len(domain)-1] == byte('.') {
-		domain = domain[:len(domain)-2]
+	domain = strings.TrimSuffix(domain, ".")
+	if domain == "" {
+		return ""
 	}
 
-	splits := strings.Split(domain, ".")
-
-	// This is just weird, but ok - probably ipv6 address
-	if len(splits) < 2 {
+	if ip := net.ParseIP(domain); ip != nil {
 		return domain
 	}
 
-	// Check if this is an IP or domain name; assuming TLD cannot
-	// start with a number
-	if unicode.IsDigit(rune(splits[len(splits)-1][0])) {
+	base, err := publicsuffix.EffectiveTLDPlusOne(domain)
+	if err != nil {
 		return domain
 	}
 
-	return strings.Join(splits[len(splits)-2:], ".")
+	return base
 }

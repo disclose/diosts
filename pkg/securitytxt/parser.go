@@ -13,7 +13,7 @@ import (
 func Parse(in []byte, txt *SecurityTxt) error {
 	s := bufio.NewScanner(bytes.NewReader(in))
 
-	for lineNo := 0; s.Scan(); lineNo++ {
+	for lineNo := 1; s.Scan(); lineNo++ {
 		line := s.Text()
 
 		// Comment or empty line
