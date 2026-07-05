@@ -1,3 +1,25 @@
+<div align="center">
+
+<a href="https://disclose.io"><img src="docs/marquee.png" alt="diosts · disclose.io" width="820"></a>
+
+# diosts
+
+### Validate `security.txt` at Internet scale — a fast **Go** scraper for [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) that keeps the directory fresh.
+
+<p>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/disclose/diosts?color=5B3AB6&label=license" alt="license"></a>
+<img src="https://img.shields.io/badge/lang-Go-5B3AB6" alt="lang Go">
+<a href="https://www.rfc-editor.org/rfc/rfc9116"><img src="https://img.shields.io/badge/spec-RFC%209116-5B3AB6" alt="spec RFC%209116"></a>
+<a href="https://github.com/disclose/diosts/issues"><img src="https://img.shields.io/badge/PRs-welcome-5B3AB6" alt="PRs welcome"></a>
+</p>
+
+*Part of **[the disclose.io Project](https://disclose.io)** — the open, vendor-neutral infrastructure for vulnerability disclosure. [Browse the ecosystem →](https://github.com/disclose)*
+
+</div>
+
+---
+
+
 # diosts
 
 The disclose.io security.txt scraper (`diosts`) takes a list of domains as the input, retrieves and validates the `security.txt` if available and outputs it in the disclose.io JSON format.
